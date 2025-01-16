@@ -1,0 +1,6 @@
+---
+- name: Docker Engine Installation Playbook
+  hosts: all
+  become: true
+  roles:
+    - pre-requirements

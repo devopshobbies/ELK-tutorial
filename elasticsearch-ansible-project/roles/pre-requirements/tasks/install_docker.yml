@@ -1,0 +1,106 @@
+---
+
+- name: Check for required privileges
+  fail:
+    msg: "This playbook must be run with become: true"
+  when: not ansible_become
+
+- name: Validate OS distribution
+  ansible.builtin.assert:
+    that:
+      - ansible_distribution in ["Ubuntu", "Debian", "CentOS", "RHEL", "Fedora"]
+    fail_msg: "Unsupported OS distribution: {{ ansible_distribution }}"
+    success_msg: "OS distribution {{ ansible_distribution }} is supported."
+
+- name: Install required packages for repository setup
+  package:
+    name:
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+    state: present
+  when: ansible_distribution in ["Ubuntu", "Debian"]
+
+- name: Download Docker's official GPG key
+  ansible.builtin.get_url:
+    url: "https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg"
+    dest: "/tmp/docker.gpg"
+
+- name: Add Docker's GPG key to the system keyring
+  ansible.builtin.command:
+    cmd: "gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg /tmp/docker.gpg"
+  args:
+    creates: /usr/share/keyrings/docker-archive-keyring.gpg
+
+- name: Set up the stable repository for Debian/Ubuntu
+  ansible.builtin.apt_repository:
+    repo: "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] {{ download_url }}/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release | lower }} {{ docker_channel }}"
+    state: present
+  when: ansible_distribution in ["Ubuntu", "Debian"]
+
+- name: Install Docker packages for Debian/Ubuntu
+  ansible.builtin.apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-compose-plugin
+    state: present
+  when: ansible_distribution in ["Ubuntu", "Debian"]
+
+- name: Add Docker repository for CentOS/RHEL/Fedora
+  ansible.builtin.yum_repository:
+    name: docker-ce
+    description: Docker CE Repository
+    baseurl: "{{ download_url }}/linux/{{ ansible_distribution | lower }}/docker-ce.repo"
+    enabled: yes
+    gpgcheck: yes
+    gpgkey: "{{ download_url }}/linux/{{ ansible_distribution | lower }}/gpg"
+  when: ansible_distribution in ["CentOS", "RHEL", "Fedora"]
+
+- name: Install Docker packages for CentOS/RHEL/Fedora
+  ansible.builtin.yum:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-compose-plugin
+    state: present
+  when: ansible_distribution in ["CentOS", "RHEL", "Fedora"]
+
+- name: Create Docker group and add current user
+  ansible.builtin.group:
+    name: docker
+    state: present
+
+- name: Add current user to Docker group
+  ansible.builtin.user:
+    name: "{{ ansible_user }}"
+    groups: docker
+    append: true
+
+- name: Enable and start Docker service
+  ansible.builtin.service:
+    name: docker
+    enabled: true
+    state: started
+
+- name: Run Docker hello-world to verify installation
+  ansible.builtin.command:
+    cmd: "docker run hello-world"
+  register: hello_world_output
+  failed_when: hello_world_output.rc != 0
+
+
+- name: Validate Docker installation
+  ansible.builtin.command: docker --version
+  register: docker_version_output
+
+- name: Display Docker version
+  ansible.builtin.debug:
+    msg: "Docker version installed: {{ docker_version_output.stdout }}"
+
+- name: Display Docker hello-world output
+  ansible.builtin.debug:
+    msg: "Docker hello-world output: {{ hello_world_output.stdout }}"

@@ -1,0 +1,7 @@
+---
+# defaults file for roles/pre-requirements
+docker_version: ""
+docker_channel: "stable"
+docker_mirror: ""
+docker_script_commit_sha: "4c94a56999e10efcf48c5b8e3f6afea464f9108e"
+download_url: "https://download.docker.com"

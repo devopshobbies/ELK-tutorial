@@ -1,0 +1,19 @@
+---
+- name: Check for required privileges
+  fail:
+    msg: "This playbook must be run with become: true"
+  when: not ansible_become
+
+- name: Validate OS distribution
+  ansible.builtin.assert:
+    that:
+      - ansible_distribution in ["Ubuntu", "Debian", "CentOS", "RHEL", "Fedora"]
+    fail_msg: "Unsupported OS distribution: {{ ansible_distribution }}"
+    success_msg: "OS distribution {{ ansible_distribution }} is supported."
+
+- name: Install required packages for repository setup
+  package:
+    name:
+      - vim
+    state: present
+  when: ansible_distribution in ["Ubuntu", "Debian"]

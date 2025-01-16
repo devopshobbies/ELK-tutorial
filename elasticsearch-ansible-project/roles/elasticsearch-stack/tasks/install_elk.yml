@@ -1,0 +1,18 @@
+---
+- name: Create /mnt/elasticsearch directory
+  file:
+    path: /mnt/elasticsearch
+    state: directory
+    mode: '0755'
+
+- name: Copy docker-compose.yml to /mnt/elasticsearch
+  copy:
+    src: files/docker-compose.yml
+    dest: /mnt/elasticsearch/docker-compose.yml
+    mode: '0644'
+
+- name: Copy .env to /mnt/elasticsearch
+  copy:
+    src: files/.env
+    dest: /mnt/elasticsearch/.env
+    mode: '0644'

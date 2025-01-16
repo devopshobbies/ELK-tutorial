@@ -1,0 +1,4 @@
+---
+# tasks file for roles/elasticsearch-stack
+- name: install elasticsearch and kibana
+  include_tasks: install_elk.yml

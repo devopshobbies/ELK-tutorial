@@ -1,0 +1,6 @@
+---
+# tasks file for roles/pre-requirements
+- name: install docker
+  include_tasks: install_docker.yml
+- name: install tools
+  include_tasks: install_tools.yml

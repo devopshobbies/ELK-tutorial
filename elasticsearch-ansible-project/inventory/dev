@@ -1,0 +1,7 @@
+[all]
+node01 ansible_host=IP
+
+[all:vars]
+ansible_become=true
+ansible_become_method=sudo
+ansible_python_interpreter=/usr/bin/python3
