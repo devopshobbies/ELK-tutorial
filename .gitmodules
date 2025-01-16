@@ -1,0 +1,4 @@
+[submodule "terraform-templates"]
+	path = terraform-templates
+	url = https://github.com/devopshobbies/terraform-templates.git
+	branch = master
