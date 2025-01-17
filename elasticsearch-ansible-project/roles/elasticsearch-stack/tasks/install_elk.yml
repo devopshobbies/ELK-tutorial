@@ -16,3 +16,56 @@
     src: files/.env
     dest: /mnt/elasticsearch/.env
     mode: '0644'
+
+- name: Check if Docker Compose is already running
+  command: docker compose ps
+  args:
+    chdir: /mnt/elasticsearch
+  register: compose_status
+  failed_when: false
+
+# - name: Debug Docker Compose status
+#   debug:
+#     var: compose_status.stdout
+
+- name: Run Docker Compose if not running
+  command: docker compose up -d
+  args:
+    chdir: /mnt/elasticsearch
+  when: compose_status.stdout.strip() == "NAME      IMAGE     COMMAND   SERVICE   CREATED   STATUS    PORTS" or "Exit" in compose_status.stdout
+
+- name: Verify Docker Compose status after running
+  command: docker compose ps
+  args:
+    chdir: /mnt/elasticsearch
+  register: final_compose_status
+
+- name: Debug Docker Compose status after running
+  debug:
+    var: final_compose_status.stdout
+
+- name: Load environment variables from .env
+  shell: |
+    cat /mnt/elasticsearch/.env | grep -v '^#' | grep '='
+  register: env_vars_raw
+
+- name: Parse environment variables into dictionary
+  set_fact:
+    env_vars: >-
+      {{
+        dict(env_vars_raw.stdout_lines | map('split', '=', 1) | map('map', 'trim'))
+      }}
+
+- name: Check Elasticsearch service availability
+  command: >
+    curl -k -u "{{ env_vars['ELASTIC_USERNAME'] }}:{{ env_vars['ELASTIC_PASSWORD'] }}"
+    https://localhost:{{ env_vars['ES_PORT'] }}
+  register: elasticsearch_status
+  failed_when: elasticsearch_status.rc != 0
+  retries: 5
+  delay: 10
+  until: elasticsearch_status.rc == 0
+
+- name: Debug Elasticsearch service status
+  debug:
+    var: elasticsearch_status.stdout
