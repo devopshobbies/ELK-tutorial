@@ -44,9 +44,9 @@
   debug:
     var: final_compose_status.stdout
 
-- name: Load environment variables from .env
+- name: Decrypt and Load environment variables
   shell: |
-    cat /mnt/elasticsearch/.env | grep -v '^#' | grep '='
+    ansible-vault view /mnt/elasticsearch/.env --vault-password-file /path/to/vault-password-file | grep -v '^#' | grep '='
   register: env_vars_raw
 
 - name: Parse environment variables into dictionary
