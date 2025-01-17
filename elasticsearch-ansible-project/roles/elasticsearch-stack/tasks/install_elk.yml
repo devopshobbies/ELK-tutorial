@@ -17,55 +17,24 @@
     dest: /mnt/elasticsearch/.env
     mode: '0644'
 
-- name: Check if Docker Compose is already running
-  command: docker compose ps
-  args:
-    chdir: /mnt/elasticsearch
-  register: compose_status
-  failed_when: false
+- name: Get total system memory in bytes
+  ansible.builtin.shell: free -b | awk '/Mem:/ {print $2}'
+  register: system_memory
+  changed_when: false
 
-# - name: Debug Docker Compose status
-#   debug:
-#     var: compose_status.stdout
-
-- name: Run Docker Compose if not running
-  command: docker compose up -d
-  args:
-    chdir: /mnt/elasticsearch
-  when: compose_status.stdout.strip() == "NAME      IMAGE     COMMAND   SERVICE   CREATED   STATUS    PORTS" or "Exit" in compose_status.stdout
-
-- name: Verify Docker Compose status after running
-  command: docker compose ps
-  args:
-    chdir: /mnt/elasticsearch
-  register: final_compose_status
-
-- name: Debug Docker Compose status after running
-  debug:
-    var: final_compose_status.stdout
-
-- name: Decrypt and Load environment variables
-  shell: |
-    ansible-vault view /mnt/elasticsearch/.env --vault-password-file /path/to/vault-password-file | grep -v '^#' | grep '='
-  register: env_vars_raw
-
-- name: Parse environment variables into dictionary
+- name: Calculate memory limits for Elasticsearch and Kibana
   set_fact:
-    env_vars: >-
-      {{
-        dict(env_vars_raw.stdout_lines | map('split', '=', 1) | map('map', 'trim'))
-      }}
+    es_mem_limit: "{{ (system_memory.stdout | int) }}"
+    kb_mem_limit: "{{ (system_memory.stdout | int) // 2 }}"
 
-- name: Check Elasticsearch service availability
-  command: >
-    curl -k -u "{{ env_vars['ELASTIC_USERNAME'] }}:{{ env_vars['ELASTIC_PASSWORD'] }}"
-    https://localhost:{{ env_vars['ES_PORT'] }}
-  register: elasticsearch_status
-  failed_when: elasticsearch_status.rc != 0
-  retries: 5
-  delay: 10
-  until: elasticsearch_status.rc == 0
+- name: Update ES_MEM_LIMIT and KB_MEM_LIMIT in .env file
+  lineinfile:
+    path: /mnt/elasticsearch/.env
+    regexp: '^ES_MEM_LIMIT='
+    line: "ES_MEM_LIMIT={{ es_mem_limit }}"
 
-- name: Debug Elasticsearch service status
-  debug:
-    var: elasticsearch_status.stdout
+- name: Update KB_MEM_LIMIT in .env file
+  lineinfile:
+    path: /mnt/elasticsearch/.env
+    regexp: '^KB_MEM_LIMIT='
+    line: "KB_MEM_LIMIT={{ kb_mem_limit }}"
