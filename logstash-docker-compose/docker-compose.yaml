@@ -1,0 +1,30 @@
+version: '3.8'
+services:
+  logstash:
+    image: logstash:8.17.1
+    container_name: logstash
+    volumes:
+      - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro,z
+      - ./logstash/pipeline:/usr/share/logstash/pipeline:ro,z
+      - ./logstash/config/pipelines.yml:/usr/share/logstash/config/pipelines.yml:ro,z
+    restart: unless-stopped
+    user: "1000:1000"
+    ports:
+      - "5044:5044"
+      - "9600:9600"
+    environment:
+      LS_JAVA_OPTS: "-Xmx2g -Xms2g"
+    networks:
+      default:
+        aliases:
+          - logstash.local
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+networks:
+  default:
+    name: logstash
+    external: false
