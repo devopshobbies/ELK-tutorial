@@ -11,3 +11,11 @@ services:
       - FLASK_ENV=production
     restart: always
 
+  filebeat:
+    image: elastic/filebeat:8.17.0
+    volumes:
+      - ./logs:/var/log/flask-app
+      - ./filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+    depends_on:
+      - flask-app
+    restart: always
