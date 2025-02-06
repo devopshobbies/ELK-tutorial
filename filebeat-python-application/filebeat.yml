@@ -1,0 +1,20 @@
+filebeat.inputs:
+  - type: filestream
+    id: flask_logs
+    enabled: true
+    paths:
+      - /var/log/flask-app/app.log  # Matches Flask logs
+    fields:
+      service: flask-app
+    processors:
+      - add_locale:
+          format: offset
+
+output.console:  # Sends logs to console (for testing)
+  pretty: true
+
+
+# Example: Send logs to Logstash
+# output.logstash:
+#   hosts: ["logstash:5044"]
+
