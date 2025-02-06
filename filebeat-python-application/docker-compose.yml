@@ -1,8 +1,6 @@
-version: '3.8'
-
 services:
   flask-app:
-    build: ./python-application
+    image: f4rsh4d/flask-logger:v1.0.0@sha256:cab2e1894ebc40f309c426170fc0c827f4bf4087e7e3471d40c12fbce16f1c3b
     ports:
       - "5000:5000"
     volumes:
@@ -16,6 +14,7 @@ services:
     volumes:
       - ./logs:/var/log/flask-app
       - ./filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+    command: ["filebeat", "-e", "--strict.perms=false"]
     depends_on:
       - flask-app
     restart: always
