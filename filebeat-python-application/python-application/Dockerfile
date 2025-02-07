@@ -18,7 +18,7 @@ ENV FLASK_HOST=0.0.0.0
 ENV FLASK_PORT=5000
 ENV FLASK_DEBUG=False
 ENV FLASK_LOG_LEVEL=INFO
-ENV FLASK_LOG_FILE=app.log
+ENV FLASK_LOG_FILE=logs/app.log
 
 # Run the application
 CMD ["python", "main.py"]
