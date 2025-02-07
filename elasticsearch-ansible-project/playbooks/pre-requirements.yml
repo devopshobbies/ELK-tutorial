@@ -1,6 +1,5 @@
 ---
-- name: Docker Engine Installation Playbook
-  hosts: all
+- hosts: pre-requirements
   become: true
   roles:
-    - pre-requirements
+    - { role: pre-requirements, tags: ["pre-requirements"] }

@@ -1,0 +1,3 @@
+group_name: "pre-requirements"
+install_elasticsearch: false
+install_docker: true
