@@ -10,6 +10,9 @@ COPY main.py requirements.txt ./
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Ensure logs directory exists
+RUN mkdir -p logs
+
 # Expose port 5000
 EXPOSE 5000
 

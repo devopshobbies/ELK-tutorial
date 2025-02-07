@@ -48,6 +48,11 @@ def get_logs():
         app.logger.error(f"Error reading logs: {e}")
         return jsonify({"error": str(e)}), 500
 
+@app.route("/health", methods=["GET"])
+def health_check():
+    """Health check endpoint."""
+    return jsonify({"status": "healthy"}), 200
+
 # Graceful Shutdown Handler
 def shutdown_handler(signal_received, frame):
     app.logger.info("Shutting down Flask application...")
