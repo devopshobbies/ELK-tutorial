@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-app
+  labels:
+    app: flask-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flask-app
+  template:
+    metadata:
+      labels:
+        app: flask-app
+    spec:
+      volumes:
+        - name: logs
+          emptyDir: {}
+        - name: filebeat-config
+          configMap:
+            name: filebeat-config
+      containers:
+        - name: flask-app
+          image: f4rsh4d/flask-logger:v1.1.0@sha256:10c6de718ef7bc96f74d1c7e3ccfa2563d11181d83029b3b560b352a464fc39f
+          ports:
+            - containerPort: 5000
+          volumeMounts:
+            - name: logs
+              mountPath: /app/logs
+          env:
+            - name: FLASK_ENV
+              value: "production"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 5
+            periodSeconds: 3
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+            requests:
+              cpu: "250m"
+              memory: "128Mi"
+
+        - name: filebeat
+          image: elastic/filebeat:8.17.0
+          args: ["-e", "--strict.perms=false"]
+          volumeMounts:
+            - name: logs
+              mountPath: /var/log/flask-app
+            - name: filebeat-config
+              mountPath: /usr/share/filebeat/filebeat.yml
+              subPath: filebeat.yml
+          livenessProbe:
+            exec:
+              command: ["filebeat", "test", "output"]
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          readinessProbe:
+            exec:
+              command: ["filebeat", "test", "config"]
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            limits:
+              cpu: "250m"
+              memory: "128Mi"
+            requests:
+              cpu: "100m"
+              memory: "64Mi"
