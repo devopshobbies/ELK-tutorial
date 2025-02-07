@@ -1,3 +1,4 @@
 elasticsearch-ansible-project/ansible.log
 filebeat-python-application.tar.gz
 logstash-docker-compose.tar.gz
+filebeat-python-application/logs/app.log
