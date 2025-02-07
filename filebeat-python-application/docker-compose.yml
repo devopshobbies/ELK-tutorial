@@ -1,6 +1,6 @@
 services:
   flask-app:
-    image: f4rsh4d/flask-logger:v1.0.0@sha256:cab2e1894ebc40f309c426170fc0c827f4bf4087e7e3471d40c12fbce16f1c3b
+    image: f4rsh4d/flask-logger:v1.0.1@sha256:1da4e3d3e43a6535859f0a67f961540b48c203685196d80fb3d1a8f8c28eb9a8
     ports:
       - "5000:5000"
     volumes:
