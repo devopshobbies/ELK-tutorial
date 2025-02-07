@@ -10,7 +10,7 @@ HOST = os.getenv("FLASK_HOST", "0.0.0.0")
 PORT = int(os.getenv("FLASK_PORT", 5000))
 DEBUG = os.getenv("FLASK_DEBUG", "False").lower() in ("true", "1", "yes")
 LOG_LEVEL = os.getenv("FLASK_LOG_LEVEL", "INFO").upper()
-LOG_FILE = os.getenv("FLASK_LOG_FILE", "app.log")
+LOG_FILE = os.getenv("FLASK_LOG_FILE", "logs/app.log")
 
 # Flask App Initialization
 app = Flask(__name__)
